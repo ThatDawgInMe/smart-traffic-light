@@ -1,62 +1,105 @@
+// Modified Arduino Sketch: TFT Display + Traffic Light LEDs + Buzzer + Serial Control 04.27.2025
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
 
-// Pins
+// TFT Pins
 #define TFT_CS     10
 #define TFT_RST    8
 #define TFT_DC     9
-#define BUZZER_PIN 7
 
+// Traffic Light Pins
+#define RED_PIN    2
+#define YELLOW_PIN 3
+#define GREEN_PIN  4
+
+// Buzzer Pin
+#define BUZZER_PIN 5
+
+// Create TFT object
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 void setup() {
+  Serial.begin(9600);
+
+  // Setup TFT
+  tft.init(240, 320);
+  tft.setRotation(1);
+  tft.fillScreen(ST77XX_BLACK);
+
+  // Setup Traffic Light LEDs
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(YELLOW_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+
+  // Setup Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
 
-  tft.init(240, 320);
-  tft.setRotation(0);
-  tft.fillScreen(ST77XX_BLACK);
-  tft.setTextSize(5);
-  tft.setTextColor(ST77XX_WHITE);
+  // Initial state
+  allLightsOff();
+  noTone(BUZZER_PIN);
 }
 
 void loop() {
-  showWalk(10);         // Show WALK for 10s
-  showDontWalk(20, 5);  // Show DON'T WALK for 20s, blink last 5s
+  if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    command.trim(); // Clean up the string
+
+    if (command == "walk") {
+      showWalk();
+    } else if (command == "warn") {
+      warnPedestrians();
+    } else if (command == "dontwalk") {
+      showDontWalk();
+    }
+  }
 }
 
-void showWalk(int duration) {
-  tft.fillScreen(ST77XX_BLACK);
-  tft.setTextColor(ST77XX_RED);
-  tft.setCursor(60, 140);
-  tft.print("STOP");
-
-  // Optional sound
-  tone(BUZZER_PIN, 880, 200);  // Beep at start
-  delay(300);
-
-  delay(duration * 1000);
-}
-
-void showDontWalk(int duration, int blinkLastSeconds) {
-  int steadyTime = duration - blinkLastSeconds;
-
-  // Steady DON'T WALK
+void showWalk() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_GREEN);
-  tft.setCursor(60, 140);
+  tft.setTextSize(4);
+  tft.setCursor(40, 140);
   tft.print("WALK");
-  delay(steadyTime * 1000);
 
-  // Blinking DON'T WALK
-  for (int i = 0; i < blinkLastSeconds * 2; i++) {
-    tft.fillScreen(i % 2 == 0 ? ST77XX_BLACK : ST77XX_YELLOW);
-    if (i % 2 != 0) {
-      tft.setTextColor(ST77XX_BLACK);
-      tft.setCursor(60, 144);
-      tft.print("HURRY");
-    }
-    tone(BUZZER_PIN, 1000, 150);  // Optional beep with blink
-    delay(500);
-  }
+  digitalWrite(GREEN_PIN, HIGH);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, LOW);
+
+  noTone(BUZZER_PIN);
+}
+
+void warnPedestrians() {
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextColor(ST77XX_YELLOW);
+  tft.setTextSize(3);
+  tft.setCursor(20, 140);
+  tft.print("CAUTION");
+
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, HIGH);
+  digitalWrite(RED_PIN, LOW);
+
+  tone(BUZZER_PIN, 1000, 500); // Beep for 500ms
+}
+
+void showDontWalk() {
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextColor(ST77XX_RED);
+  tft.setTextSize(3);
+  tft.setCursor(10, 140);
+  tft.print("DON'T WALK");
+
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, HIGH);
+
+  noTone(BUZZER_PIN);
+}
+
+void allLightsOff() {
+  digitalWrite(RED_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(GREEN_PIN, LOW);
 }
