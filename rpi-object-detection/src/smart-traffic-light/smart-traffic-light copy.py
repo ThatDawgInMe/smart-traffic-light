@@ -35,9 +35,9 @@ print("Using raspi camera: ", IS_RASPI_CAMERA)
 
 # Define Smart Motion Zones (x, y, width, height)
 zones = [
-    (30, 50, 80, 80),
-    (150, 70, 90, 100),
-    (200, 200, 40, 40),
+   # (30, 50, 80, 80),
+  #  (150, 70, 90, 100),
+    (200, 200, 80, 100),
 ]
 
 def mse(image_a, image_b):
