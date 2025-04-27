@@ -1,83 +1,130 @@
+#!/usr/bin/python3
+
+# Modified cv_motion_detection.py with Smart Motion Zones
+
+import os
+import sys
 import cv2
 import time
-import serial
 import numpy as np
+import serial
+import RPi.GPIO as GPIO
+from time import sleep
 
-# Set up serial connection
-arduino = serial.Serial('/dev/ttyACM0', 9600)
-time.sleep(2)  # Give Arduino time to reset
+# Add src directory to the path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Set up camera
-cap = cv2.VideoCapture(0)
-cap.set(3, 320)
-cap.set(4, 240)
+from utils.picamera_utils import is_raspberry_camera, get_picamera
 
-# Motion detection parameters
-MOTION_THRESHOLD = 100
-motion_detected = False
+CAMERA_DEVICE_ID = 0
+# Set up serial to Arduino
+arduino = serial.Serial('/dev/ttyACM0', 9600)  # Adjust if needed
+time.sleep(2)  # Wait for Arduino to reset
 
-# Behavior mode: "single" or "continuous"
-BEHAVIOR_MODE = "single"  # Change to "continuous" if you want
+IMAGE_WIDTH = 320
+IMAGE_HEIGHT = 240
+IS_RASPI_CAMERA = is_raspberry_camera()
+MOTION_BLUR = True
 
-previous_gray = None
+MOTION_THRESHOLD = 100  # Sensitivity for motion detection
 
-def mse(imageA, imageB):
-    # Mean Squared Error between two images
-    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-    err /= float(imageA.shape[0] * imageA.shape[1])
+cnt_frame = 0
+fps = 0
+
+print("Using raspi camera: ", IS_RASPI_CAMERA)
+
+# Define Smart Motion Zones (x, y, width, height)
+zones = [
+    (60, 80, 100, 100),  # Example zone in the middle
+    (180, 50, 60, 120)   # Another example zone
+]
+
+def mse(image_a, image_b):
+    err = np.sum((image_a.astype("float") - image_b.astype("float")) ** 2)
+    err /= float(image_a.shape[0] * image_a.shape[1])
     return err
 
-def send_walk_cycle():
-    print("[Pi] Sending: walk")
-    arduino.write(b'walk\n')
-    time.sleep(10)  # WALK time
+def visualize_fps(image, fps: int):
+    if len(np.shape(image)) < 3:
+        text_color = (255, 255, 255)  # white
+    else:
+        text_color = (0, 255, 0)  # green
+    row_size = 20  # pixels
+    left_margin = 24  # pixels
 
-    print("[Pi] Sending: warn")
-    arduino.write(b'warn\n')
-    time.sleep(5)   # WARN time
+    font_size = 1
+    font_thickness = 1
 
-    print("[Pi] Sending: dontwalk")
-    arduino.write(b'dontwalk\n')
+    fps_text = 'FPS = {:.1f}'.format(fps)
+    text_location = (left_margin, row_size)
+    cv2.putText(image, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
+                font_size, text_color, font_thickness)
+    return image
 
-try:
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            continue
+def extract_zone(image, zone):
+    x, y, w, h = zone
+    return image[y:y+h, x:x+w]
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (5,5), 0)
-
-        if previous_gray is None:
-            previous_gray = gray
-            continue
-
-        error = mse(gray, previous_gray)
-        previous_gray = gray
-
-        if error > MOTION_THRESHOLD:
-            print(f"[Pi] Motion Detected! MSE: {error:.2f}")
-
-            if BEHAVIOR_MODE == "single":
-                if not motion_detected:
-                    send_walk_cycle()
-                    motion_detected = True
-            elif BEHAVIOR_MODE == "continuous":
-                send_walk_cycle()
-        
+if __name__ == "__main__":
+    try:
+        if IS_RASPI_CAMERA:
+            cap = get_picamera(IMAGE_WIDTH, IMAGE_HEIGHT)
+            cap.start()
         else:
-            # No motion
-            motion_detected = False
+            cap = cv2.VideoCapture(CAMERA_DEVICE_ID)
+            cap.set(3, IMAGE_WIDTH)
+            cap.set(4, IMAGE_HEIGHT)
 
-        # Display for debugging
-        cv2.imshow("Camera", gray)
-        if cv2.waitKey(1) == 27:  # ESC to quit
-            break
+        previous_gray = None
 
-except Exception as e:
-    print("[Pi] Error:", e)
+        while True:
+            start_time = time.time()
 
-finally:
-    cap.release()
-    arduino.close()
-    cv2.destroyAllWindows()
+            if IS_RASPI_CAMERA:
+                frame_raw = cap.capture_array()
+            else:
+                _, frame_raw = cap.read()
+
+            if MOTION_BLUR:
+                frame = cv2.GaussianBlur(frame_raw, (3, 3), 0)
+            else:
+                frame = frame_raw
+
+            frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            if previous_gray is not None:
+                for zone in zones:
+                    zone_now = extract_zone(frame_gray, zone)
+                    zone_prev = extract_zone(previous_gray, zone)
+
+                    error = mse(zone_now, zone_prev)
+
+                    if error > MOTION_THRESHOLD:
+                        print(f'Frame {cnt_frame}: Motion Detected in Zone {zone}!')
+                        arduino.write(b'motion\n')
+
+            # Draw zones for visualization
+            for zone in zones:
+                x, y, w, h = zone
+                cv2.rectangle(frame_raw, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+            # Show images
+            cv2.imshow('Camera View', visualize_fps(frame_raw, fps))
+            cv2.imshow('Gray', frame_gray)
+
+            end_time = time.time()
+            seconds = end_time - start_time
+            fps = 1.0 / seconds
+
+            cnt_frame += 1
+            previous_gray = frame_gray.copy()
+
+            if cv2.waitKey(1) == 27:
+                break
+
+    except Exception as e:
+        print(e)
+    finally:
+        cv2.destroyAllWindows()
+        cap.close() if IS_RASPI_CAMERA else cap.release()
+        arduino.close()
