@@ -15,7 +15,7 @@
 #define GREEN_PIN  4
 
 // Buzzer Pin
-#define BUZZER_PIN 5
+#define BUZZER_PIN 7
 
 // Create TFT object
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
