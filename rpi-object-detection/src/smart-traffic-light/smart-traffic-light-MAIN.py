@@ -1,5 +1,4 @@
-#Update 4-28-2025 11:37 PM
-
+#Update 4-28-2025 11:41 PM
 #!/usr/bin/python3
 
 # Smart Motion Detection + Traffic Light Controller
@@ -32,6 +31,11 @@ BEHAVIOR_MODE = "continuous"  # "single" or "continuous"
 # Setup serial communication
 arduino = serial.Serial(SERIAL_PORT, BAUD_RATE)
 time.sleep(2)  # Allow Arduino to reset
+
+# NEW: Confirm Red light and DON'T WALK at startup
+print("[Pi] Sending initial DONTWALK command...")
+arduino.write(b'dontwalk\n')
+time.sleep(1)
 
 # Setup camera
 IS_RASPI_CAMERA = is_raspberry_camera()
