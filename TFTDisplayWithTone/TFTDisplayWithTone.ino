@@ -1,4 +1,4 @@
-// Final Arduino Sketch: TFT Display + Traffic Lights + Buzzer + Button Startup
+// Final Arduino Sketch: TFT Display + Traffic Lights + Buzzer + Button Startup + Safe Red Light
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
@@ -30,12 +30,6 @@ void setup() {
   tft.setRotation(1);
   tft.fillScreen(ST77XX_BLACK);
 
-  // Show initial status
-  tft.setTextColor(ST77XX_WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(10, 140);
-  tft.print("Waiting for Button");
-
   // Setup Traffic Light LEDs
   pinMode(RED_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
@@ -47,17 +41,26 @@ void setup() {
   // Setup Button
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  // Initial state
-  allLightsOff();
+  // Turn ON Red Light immediately
+  digitalWrite(RED_PIN, HIGH);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(GREEN_PIN, LOW);
+
+  // Initial Display: Show "DON'T WALK"
+  tft.setTextColor(ST77XX_RED);
+  tft.setTextSize(3);
+  tft.setCursor(10, 140);
+  tft.print("DON'T WALK");
+
   noTone(BUZZER_PIN);
 }
 
 void loop() {
   // Check if button is pressed
-  if (digitalRead(BUTTON_PIN) == LOW) {  // Button pressed
+  if (digitalRead(BUTTON_PIN) == LOW) {
     Serial.println("start");
 
-    // Update TFT message
+    // Optional: Show "Button Pressed" after button press
     tft.fillScreen(ST77XX_BLACK);
     tft.setTextColor(ST77XX_GREEN);
     tft.setTextSize(2);
@@ -69,7 +72,7 @@ void loop() {
 
   // Check for incoming commands from Pi
   if (Serial.available()) {
-    String command = Serial.readStringUntil('\\n');
+    String command = Serial.readStringUntil('\n');
     command.trim();
 
     if (command == "walk") {
