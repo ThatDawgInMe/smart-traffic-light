@@ -1,5 +1,4 @@
-// Final Arduino Sketch: TFT + Traffic Lights + Buzzer + Button Trigger to Raspberry Pi
-
+// Final Arduino Sketch: TFT Display + Traffic Lights + Buzzer + Button Startup
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
@@ -17,7 +16,7 @@
 // Buzzer Pin
 #define BUZZER_PIN 5
 
-// NEW: Button Pin
+// Button Pin
 #define BUTTON_PIN 6
 
 // Create TFT object
@@ -30,6 +29,12 @@ void setup() {
   tft.init(240, 320);
   tft.setRotation(1);
   tft.fillScreen(ST77XX_BLACK);
+
+  // Show initial status
+  tft.setTextColor(ST77XX_WHITE);
+  tft.setTextSize(2);
+  tft.setCursor(10, 140);
+  tft.print("Waiting for Button");
 
   // Setup Traffic Light LEDs
   pinMode(RED_PIN, OUTPUT);
@@ -49,14 +54,22 @@ void setup() {
 
 void loop() {
   // Check if button is pressed
-  if (digitalRead(BUTTON_PIN) == LOW) {
+  if (digitalRead(BUTTON_PIN) == LOW) {  // Button pressed
     Serial.println("start");
+
+    // Update TFT message
+    tft.fillScreen(ST77XX_BLACK);
+    tft.setTextColor(ST77XX_GREEN);
+    tft.setTextSize(2);
+    tft.setCursor(20, 140);
+    tft.print("Button Pressed!");
+
     delay(500); // Debounce delay
   }
 
   // Check for incoming commands from Pi
   if (Serial.available()) {
-    String command = Serial.readStringUntil('\n');
+    String command = Serial.readStringUntil('\\n');
     command.trim();
 
     if (command == "walk") {
