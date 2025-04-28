@@ -120,5 +120,3 @@ This system simulates real-world pedestrian signals with enhanced safety checks.
 - [ ] Buzzer beeps during warning
 
 ---
-
-> 🚀 **Congratulations!** You have successfully built a Smart Traffic Light System with integrated object detection and dual microcontroller communication!
