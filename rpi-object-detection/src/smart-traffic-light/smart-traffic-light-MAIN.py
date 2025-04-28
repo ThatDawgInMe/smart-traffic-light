@@ -21,10 +21,11 @@ IMAGE_WIDTH = 320
 IMAGE_HEIGHT = 240
 MOTION_BLUR = True
 SMART_ZONES = [
-    (60, 80, 100, 100),
-    (180, 50, 60, 120)
+    #(60, 80, 100, 100),
+    #(180, 50, 60, 120)
+        (200, 200, 250, 200)
 ]
-BEHAVIOR_MODE = "single"  # "single" or "continuous"
+BEHAVIOR_MODE = "continuous"  # "single" or "continuous"
 
 # Setup serial communication
 arduino = serial.Serial(SERIAL_PORT, BAUD_RATE)
