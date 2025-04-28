@@ -21,9 +21,9 @@ IMAGE_WIDTH = 320
 IMAGE_HEIGHT = 240
 MOTION_BLUR = True
 SMART_ZONES = [
-    #(60, 80, 100, 100),
-    #(180, 50, 60, 120)
-        (200, 200, 250, 200)
+#    (60, 80, 100, 100),
+#    (180, 50, 60, 120)
+    (200, 200, 80, 100)
 ]
 BEHAVIOR_MODE = "continuous"  # "single" or "continuous"
 
