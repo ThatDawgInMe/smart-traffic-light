@@ -17,9 +17,6 @@
 // Buzzer Pin
 #define BUZZER_PIN 5
 
-// Button Pin
-#define BUTTON_PIN 6
-
 // TFT Display (240x320)
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
@@ -40,46 +37,24 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("System Ready");
   lcd.setCursor(0, 1);
-  lcd.print("Waiting Button");
+  lcd.print("Waiting for Pi");
 
   // Setup pins
   pinMode(RED_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   // Start with RED light and DON'T WALK
   digitalWrite(RED_PIN, HIGH);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(GREEN_PIN, LOW);
 
-  showDontWalk(); // Show initial DON'T WALK on TFT
+  showDontWalk();
   noTone(BUZZER_PIN);
 }
 
 void loop() {
-  // If button pressed, send "start" and update both displays
-  if (digitalRead(BUTTON_PIN) == LOW) {
-    Serial.println("start");
-
-    // I2C LCD update
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Button Pressed!");
-    lcd.setCursor(0, 1);
-    lcd.print("Waiting Motion");
-
-    // Optional: brief message on TFT
-    tft.fillScreen(ST77XX_BLACK);
-    tft.setTextColor(ST77XX_GREEN);
-    tft.setTextSize(2);
-    tft.setCursor(20, 140);
-    tft.print("Button Pressed!");
-
-    delay(500); // Debounce
-  }
-
   // Handle serial input from Raspberry Pi
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
