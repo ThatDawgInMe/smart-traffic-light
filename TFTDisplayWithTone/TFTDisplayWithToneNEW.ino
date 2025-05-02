@@ -1,10 +1,8 @@
-
-// Final Arduino Sketch: TFT Display + Traffic Lights + Buzzer + Button Startup + Safe Red Light
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <SPI.h>
-#include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
 // TFT Pins
 #define TFT_CS     10
@@ -22,78 +20,85 @@
 // Button Pin
 #define BUTTON_PIN 6
 
-// Create TFT object
+// TFT Display (240x320)
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-//Define I2C Address
-LiquidCrystal_I2C lcd (0x27, 16, 2);
+// I2C LCD (16x2 at address 0x27)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 void setup() {
   Serial.begin(9600);
 
-  //Setup I2C LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0,0);
-  lcd.print("System Ready!");
-  lcd.setCursor(0,1);
-  lcd.print("Waiting Button");
-
-  // Setup TFT
+  // Initialize TFT
   tft.init(240, 320);
   tft.setRotation(1);
   tft.fillScreen(ST77XX_BLACK);
 
-  // Setup Traffic Light LEDs
+  // Initialize I2C LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("System Ready");
+  lcd.setCursor(0, 1);
+  lcd.print("Waiting Button");
+
+  // Setup pins
   pinMode(RED_PIN, OUTPUT);
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
-
-  // Setup Buzzer
   pinMode(BUZZER_PIN, OUTPUT);
-
-  // Setup Button
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  // Turn ON Red Light immediately
+  // Start with RED light and DON'T WALK
   digitalWrite(RED_PIN, HIGH);
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(GREEN_PIN, LOW);
 
-  // Initial Display: Show "DON'T WALK"
-  tft.setTextColor(ST77XX_RED);
-  tft.setTextSize(3);
-  tft.setCursor(10, 140);
-  tft.print("DON'T WALK");
-
+  showDontWalk(); // Show initial DON'T WALK on TFT
   noTone(BUZZER_PIN);
 }
 
 void loop() {
-  // Check if button is pressed
+  // If button pressed, send "start" and update both displays
   if (digitalRead(BUTTON_PIN) == LOW) {
     Serial.println("start");
 
-    // Optional: Show "Button Pressed" after button press
+    // I2C LCD update
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Button Pressed!");
+    lcd.setCursor(0, 1);
+    lcd.print("Waiting Motion");
+
+    // Optional: brief message on TFT
     tft.fillScreen(ST77XX_BLACK);
     tft.setTextColor(ST77XX_GREEN);
     tft.setTextSize(2);
     tft.setCursor(20, 140);
     tft.print("Button Pressed!");
 
-    delay(500); // Debounce delay
+    delay(500); // Debounce
   }
 
-  // Check for incoming commands from Pi
+  // Handle serial input from Raspberry Pi
   if (Serial.available()) {
     String command = Serial.readStringUntil('\n');
     command.trim();
 
     if (command == "walk") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pi: WALK signal");
       showWalk();
     } else if (command == "warn") {
-      warnPedestrians();
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pi: WARN signal");
+      showWarn();
     } else if (command == "dontwalk") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pi: DONTWALK");
       showDontWalk();
     }
   }
@@ -113,7 +118,7 @@ void showWalk() {
   noTone(BUZZER_PIN);
 }
 
-void warnPedestrians() {
+void showWarn() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_YELLOW);
   tft.setTextSize(3);
@@ -124,7 +129,7 @@ void warnPedestrians() {
   digitalWrite(YELLOW_PIN, HIGH);
   digitalWrite(RED_PIN, LOW);
 
-  tone(BUZZER_PIN, 1000, 500); // Beep for 500ms
+  tone(BUZZER_PIN, 1000, 500); // Beep
 }
 
 void showDontWalk() {
@@ -139,10 +144,4 @@ void showDontWalk() {
   digitalWrite(RED_PIN, HIGH);
 
   noTone(BUZZER_PIN);
-}
-
-void allLightsOff() {
-  digitalWrite(RED_PIN, LOW);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(GREEN_PIN, LOW);
 }
