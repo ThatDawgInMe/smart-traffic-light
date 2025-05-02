@@ -1,0 +1,147 @@
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7789.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// TFT Pins
+#define TFT_CS     10
+#define TFT_RST    8
+#define TFT_DC     9
+
+// Traffic Light Pins
+#define RED_PIN    2
+#define YELLOW_PIN 3
+#define GREEN_PIN  4
+
+// Buzzer Pin
+#define BUZZER_PIN 5
+
+// Button Pin
+#define BUTTON_PIN 6
+
+// TFT Display (240x320)
+Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+
+// I2C LCD (16x2 at address 0x27)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Serial.begin(9600);
+
+  // Initialize TFT
+  tft.init(240, 320);
+  tft.setRotation(1);
+  tft.fillScreen(ST77XX_BLACK);
+
+  // Initialize I2C LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("System Ready");
+  lcd.setCursor(0, 1);
+  lcd.print("Waiting Button");
+
+  // Setup pins
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(YELLOW_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // Start with RED light and DON'T WALK
+  digitalWrite(RED_PIN, HIGH);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(GREEN_PIN, LOW);
+
+  showDontWalk(); // Show initial DON'T WALK on TFT
+  noTone(BUZZER_PIN);
+}
+
+void loop() {
+  // If button pressed, send "start" and update both displays
+  if (digitalRead(BUTTON_PIN) == LOW) {
+    Serial.println("start");
+
+    // I2C LCD update
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Button Pressed!");
+    lcd.setCursor(0, 1);
+    lcd.print("Waiting Motion");
+
+    // Optional: brief message on TFT
+    tft.fillScreen(ST77XX_BLACK);
+    tft.setTextColor(ST77XX_GREEN);
+    tft.setTextSize(2);
+    tft.setCursor(20, 140);
+    tft.print("Button Pressed!");
+
+    delay(500); // Debounce
+  }
+
+  // Handle serial input from Raspberry Pi
+  if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
+
+    if (command == "walk") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pi: WALK signal");
+      showWalk();
+    } else if (command == "warn") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pi: WARN signal");
+      showWarn();
+    } else if (command == "dontwalk") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pi: DONTWALK");
+      showDontWalk();
+    }
+  }
+}
+
+void showWalk() {
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextColor(ST77XX_GREEN);
+  tft.setTextSize(4);
+  tft.setCursor(40, 140);
+  tft.print("WALK");
+
+  digitalWrite(GREEN_PIN, HIGH);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, LOW);
+
+  noTone(BUZZER_PIN);
+}
+
+void showWarn() {
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextColor(ST77XX_YELLOW);
+  tft.setTextSize(3);
+  tft.setCursor(20, 140);
+  tft.print("CAUTION");
+
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, HIGH);
+  digitalWrite(RED_PIN, LOW);
+
+  tone(BUZZER_PIN, 1000, 500); // Beep
+}
+
+void showDontWalk() {
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextColor(ST77XX_RED);
+  tft.setTextSize(3);
+  tft.setCursor(10, 140);
+  tft.print("DON'T WALK");
+
+  digitalWrite(GREEN_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(RED_PIN, HIGH);
+
+  noTone(BUZZER_PIN);
+}
