@@ -33,7 +33,7 @@ try:
                 lcd.write_string("Launching Motion\nDetection...")
                 time.sleep(1)
 
-                subprocess.Popen(["python3", "/home/pi/cv_motion_detection.py"])
+                subprocess.Popen(["python3", "/home/agik/Documents/GitHub/smart-traffic-light/rpi-object-detection/src/smart-traffic-light/smart-traffic-light-MAIN.py"])
                 lcd.clear()
                 lcd.write_string("Motion Detection\nRunning!")
 
