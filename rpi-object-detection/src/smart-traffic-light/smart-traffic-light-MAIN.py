@@ -17,14 +17,14 @@ from utils.picamera_utils import is_raspberry_camera, get_picamera
 CAMERA_DEVICE_ID = 0
 SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 9600
-MOTION_THRESHOLD = 100  # Sensitivity for motion detection
-IMAGE_WIDTH = 320
-IMAGE_HEIGHT = 240
+MOTION_THRESHOLD = 200  # Sensitivity for motion detection
+IMAGE_WIDTH = 1366
+IMAGE_HEIGHT = 768
 MOTION_BLUR = True
 SMART_ZONES = [
-#    (60, 80, 100, 100),
-#    (180, 50, 60, 120)
-    (200, 200, 80, 100)
+ #  (40, 40 , 40, 40),
+   (150, 100, 300, 100),
+   (400, 400, 10, 150)
 ]
 BEHAVIOR_MODE = "continuous"  # "single" or "continuous"
 
