@@ -28,13 +28,13 @@ This system simulates real-world pedestrian signals with enhanced safety checks.
 ## 🛠 WIRING:
 
 ### TFT LCD to Arduino UNO R3:
-- CS (Chip Select) --> Digital Pin 10
-- DC (Data/Command) --> Digital Pin 9
-- RST (Reset) --> Digital Pin 8
-- SDA (SPI Data) --> Digital Pin 11
-- SCL (SPI Clock) --> Digital Pin 13
-- VCC --> 3.3V
-- GND --> GND
+- CS (Chip Select) --> Digital Pin 10 (BLUE)
+- DC (Data/Command) --> Digital Pin 9 (PURPLE)
+- RST (Reset) --> Digital Pin 8 (GRAY)
+- SDA (SPI Data) --> Digital Pin 11 (WHITE)
+- SCL (SPI Clock) --> Digital Pin 13 (ORANGE)
+- VCC --> 3.3V (RED)
+- GND --> GND (BLACK)
 
 ### Traffic Light Module to Arduino UNO R3:
 - GND --> GND
