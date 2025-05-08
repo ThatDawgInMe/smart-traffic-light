@@ -20,7 +20,6 @@ This system simulates real-world pedestrian signals with enhanced safety checks.
 - Traffic Light Module (Red, Yellow, Green LEDs)
 - Buzzer
 - I2C 16x2 LCD (for Raspberry Pi status display)
-- Push Button (connected to Arduino)
 - Pi Camera or USB Camera
 - Breadboard, Jumper Wires
 
@@ -47,15 +46,11 @@ This system simulates real-world pedestrian signals with enhanced safety checks.
 - GND --> GND
 - VCC --> Digital Pin 5
 
-### Push Button to Arduino UNO R3:
-- One side --> Digital Pin 6
-- Other side --> GND
-
-### I2C LCD to Raspberry Pi 4:
-- VCC --> 3.3V or 5V (depends on module)
+### I2C LCD to Arduino UNO R3:
+- VCC --> 5V
 - GND --> GND
-- SDA --> GPIO2 (Pin 3)
-- SCL --> GPIO3 (Pin 5)
+- SDA --> SDA
+- SCL --> SCL
 
 ### Arduino UNO R3 to Raspberry Pi 4B:
 - SERIAL Communication via USB 2.0 port
