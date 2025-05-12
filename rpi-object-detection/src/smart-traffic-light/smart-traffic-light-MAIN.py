@@ -24,7 +24,7 @@ MOTION_BLUR = True
 SMART_ZONES = [
  #  (40, 40 , 40, 40),
    (150, 100, 300, 100),
-   (400, 400, 10, 150)
+   (131, 322, 100, 200)
 ]
 BEHAVIOR_MODE = "continuous"  # "single" or "continuous"
 

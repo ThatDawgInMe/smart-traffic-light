@@ -28,7 +28,7 @@ void setup() {
 
   // Initialize TFT
   tft.init(240, 320);
-  tft.setRotation(1);
+  tft.setRotation(-1);
   tft.fillScreen(ST77XX_BLACK);
 
   // Initialize I2C LCD
@@ -82,7 +82,7 @@ void loop() {
 void showWalk() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_GREEN);
-  tft.setTextSize(4);
+  tft.setTextSize(5);
   tft.setCursor(40, 140);
   tft.print("WALK");
 
@@ -90,13 +90,13 @@ void showWalk() {
   digitalWrite(YELLOW_PIN, LOW);
   digitalWrite(RED_PIN, LOW);
 
-  noTone(BUZZER_PIN);
+  tone(BUZZER_PIN, 2000, 500);
 }
 
 void showWarn() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_YELLOW);
-  tft.setTextSize(3);
+  tft.setTextSize(4);
   tft.setCursor(20, 140);
   tft.print("CAUTION");
 
@@ -110,7 +110,7 @@ void showWarn() {
 void showDontWalk() {
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_RED);
-  tft.setTextSize(3);
+  tft.setTextSize(5);
   tft.setCursor(10, 140);
   tft.print("DON'T WALK");
 
