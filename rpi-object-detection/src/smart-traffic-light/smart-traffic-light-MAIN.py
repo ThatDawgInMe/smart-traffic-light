@@ -1,3 +1,4 @@
+#UPDATE 5-12-2025 19:20
 #Update 4-28-2025 11:41 PM
 #!/usr/bin/python3
 
@@ -26,7 +27,7 @@ SMART_ZONES = [
    (150, 100, 300, 100),
    (131, 322, 100, 200)
 ]
-BEHAVIOR_MODE = "continuous"  # "single" or "continuous"
+BEHAVIOR_MODE = "single"  # "single" or "continuous"
 
 # Setup serial communication
 arduino = serial.Serial(SERIAL_PORT, BAUD_RATE)
